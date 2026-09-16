@@ -20,3 +20,9 @@ def test_remise_camion_60pourcent():
     vehicule = "camion"
     prix = calculer_prix_parking(duree_minute, vehicule)
     assert prix == 10.80
+
+def test_camion_electrique_60min_gratuit():
+    duree_minute = 60
+    vehicule = "camion"
+    prix = calculer_prix_parking(duree_minute, vehicule)
+    assert prix == 0.00
