@@ -1,7 +1,10 @@
 import math
 
 def calculer_prix_parking(duree_minute, vehicule="voiture"):
-    if duree_minute <= 30:
+    min_gratuite = 30
+    if vehicule == "camion":
+        min_gratuite = 60
+    if duree_minute <= min_gratuite:
         return 0.0
     jour = duree_minute / 1440
     if duree_minute > 30:
