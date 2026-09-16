@@ -1,4 +1,4 @@
-from inventaire import val, alerte, mouv
+from inventaire import val, alerte, mouv, cout
 
 ARTICLES = [
     {"ref": "VIS-M6", "lib": "Vis M6 acier", "q": 2, "pu": 0.15, "seuil": 20, "cat": "piece"},
@@ -20,3 +20,7 @@ def test_entree_sortie():
 def test_entree_sortie_negatif(): 
    estCeQueLeStockEstInsuffisant = mouv(ARTICLES[0], q=-5)
    assert estCeQueLeStockEstInsuffisant == False
+
+def test_cout_reapprovisionnement():
+    t = cout(ARTICLES[0])
+    assert t == 9.45
