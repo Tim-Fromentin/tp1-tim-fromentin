@@ -1,3 +1,4 @@
+from datetime import datetime
 from parking import calculer_prix_parking
 
 def test_30min_stationnement_gratuit():
@@ -26,3 +27,11 @@ def test_camion_electrique_60min_gratuit():
     vehicule = "camion"
     prix = calculer_prix_parking(duree_minute, vehicule)
     assert prix == 0.00
+
+def test_heure_sortie_anterieure_heure_entree():
+    duree_minute = 60
+    heure_entree = datetime(2026, 9, 16, 14, 30, 0)
+    heure_sortie = datetime(2026, 9, 16, 13, 30, 0)
+    prix = calculer_prix_parking(duree_minute, heure_entree, heure_sortie)
+    assert prix == 0.00
+
