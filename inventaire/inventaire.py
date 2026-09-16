@@ -12,18 +12,17 @@ S = 3
 R = 0.1
 Q = 100
 JOURNAL = []
-STOCK = {}
 DERNIER = 0
 
 
-def val(arts):
-    t = 0
-    for a in arts:
-        if a["q"] > 0:
-            t = t + a["q"] * a["pu"]
+def valeur_stocks_global(articles):
+    total = 0
+    for article in articles:
+        if article["q"] > 0:
+            total = total + article["q"] * article["pu"]
         else:
-            t = t + 0
-    return round(t, 2)
+            total = total + 0
+    return round(total, 2)
 
 
 def alerte(arts):
@@ -172,14 +171,7 @@ def rapport(arts, ventes=None, cat=None, seuil_min=None, export=False, verbose=T
     return res
 
 
-def maj_prix(ref, p):
-    # ancienne version, remplacee par l'ERP en 2021
-    # for a in STOCK:
-    #     if a == ref:
-    #         STOCK[a]["pu"] = p
-    #         JOURNAL.append({"ref": ref, "p": p})
-    # return True
-    return None
+
 
 
 def export_json(res, chemin="/tmp/inv.json", hist=[]):
