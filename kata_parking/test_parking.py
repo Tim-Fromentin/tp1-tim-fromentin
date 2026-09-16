@@ -1,4 +1,4 @@
-from kata_parking.parking import calculer_prix_parking
+from parking import calculer_prix_parking
 
 def test_30min_stationnement_gratuit():
     duree_minute = 30
