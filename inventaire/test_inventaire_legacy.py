@@ -16,3 +16,7 @@ def test_alerte():
 def test_entree_sortie(): 
    estCeQueLeStockEstInsuffisant = mouv(ARTICLES[0], q=5)
    assert estCeQueLeStockEstInsuffisant == False
+   
+def test_entree_sortie_negatif(): 
+   estCeQueLeStockEstInsuffisant = mouv(ARTICLES[0], q=-5)
+   assert estCeQueLeStockEstInsuffisant == False
