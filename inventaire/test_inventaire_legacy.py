@@ -1,4 +1,4 @@
-from inventaire import val
+from inventaire import val, alerte
 
 ARTICLES = [
     {"ref": "VIS-M6", "lib": "Vis M6 acier", "q": 2, "pu": 0.15, "seuil": 20, "cat": "piece"},
@@ -8,3 +8,7 @@ ARTICLES = [
 def test_val():
     resultat = val(ARTICLES)
     assert resultat == 10.30
+
+def test_alerte():
+    resultatAlerte = alerte(ARTICLES)
+    assert resultatAlerte == ["VIS-M6"]
