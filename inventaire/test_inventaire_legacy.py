@@ -1,4 +1,4 @@
-from inventaire import val, alerte
+from inventaire import val, alerte, mouv
 
 ARTICLES = [
     {"ref": "VIS-M6", "lib": "Vis M6 acier", "q": 2, "pu": 0.15, "seuil": 20, "cat": "piece"},
@@ -12,3 +12,7 @@ def test_val():
 def test_alerte():
     resultatAlerte = alerte(ARTICLES)
     assert resultatAlerte == ["VIS-M6"]
+
+def test_entree_sortie(): 
+   estCeQueLeStockEstInsuffisant = mouv(ARTICLES[0], q=5)
+   assert estCeQueLeStockEstInsuffisant == False
