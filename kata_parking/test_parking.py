@@ -32,6 +32,8 @@ def test_heure_sortie_anterieure_heure_entree():
     duree_minute = 60
     heure_entree = datetime(2026, 9, 16, 14, 30, 0)
     heure_sortie = datetime(2026, 9, 16, 13, 30, 0)
-    prix = calculer_prix_parking(duree_minute, heure_entree, heure_sortie)
-    assert prix == 0.00
+    alerte = calculer_prix_parking(
+        duree_minute, heure_entree=heure_entree, heure_sortie=heure_sortie
+    )
+    assert alerte == "Attention, une erreur s'est produite concernant votre heure de sortie."
 
