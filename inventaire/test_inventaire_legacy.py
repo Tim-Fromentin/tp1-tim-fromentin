@@ -1,4 +1,4 @@
-from inventaire import val, alerte, mouv, cout, classer
+from inventaire import val, alerte, mouv, cout, classer, rot
 
 ARTICLES = [
     {"ref": "VIS-M6", "lib": "Vis M6 acier", "q": 2, "pu": 0.15, "seuil": 20, "cat": "piece"},
@@ -32,3 +32,7 @@ def test_classement_des_stocks():
         {'ref': 'PERC-18', 'lib': 'Perceuse 18V', 'q': 10, 'pu': 1, 'seuil': 3, 'cat': 'outil'},
         {'ref': 'VIS-M6', 'lib': 'Vis M6 acier', 'q': -3, 'pu': 0.15, 'seuil': 20, 'cat': 'piece'}
     ]
+
+def test_stock_jours_restant():
+    jours_restant = rot(ARTICLES[1], 30)
+    assert jours_restant == 10
