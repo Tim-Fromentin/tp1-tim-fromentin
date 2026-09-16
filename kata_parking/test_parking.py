@@ -46,6 +46,6 @@ def test_parking_superieur_72h_fourriere():
 def test_montant_camion_instant_present():
     heure_sortie = datetime.now()
     heure_entree = heure_sortie - timedelta(minutes=480)
-    prix = calculer_prix_parking(heure_entree=heure_entree, heure_sortie=heure_sortie
+    prix = calculer_prix_parking(heure_entree=heure_entree, heure_sortie=heure_sortie, vehicule="camion"
     )
-    assert prix == 250.00
+    assert prix == 10.80
