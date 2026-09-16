@@ -6,7 +6,7 @@ def calculer_prix_parking(duree_minute, vehicule="voiture", heure_entree=None, h
     if heure_entree and heure_sortie and heure_entree > heure_sortie:
         return "Attention, une erreur s'est produite concernant votre heure de sortie."
     min_gratuite = 30
-    if vehicule == "camion":
+    if vehicule == "camion éléctrique":
         min_gratuite = 60
     if duree_minute <= min_gratuite:
         return 0.0
