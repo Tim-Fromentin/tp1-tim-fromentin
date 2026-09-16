@@ -37,3 +37,8 @@ def test_heure_sortie_anterieure_heure_entree():
     )
     assert alerte == "Attention, une erreur s'est produite concernant votre heure de sortie."
 
+
+def test_parking_superieur_72h_fourriere():
+    duree_minute = 4321
+    prix = calculer_prix_parking(duree_minute)
+    assert prix == 250.00
