@@ -1,4 +1,4 @@
-from inventaire import val, alerte, mouv, cout
+from inventaire import val, alerte, mouv, cout, classer
 
 ARTICLES = [
     {"ref": "VIS-M6", "lib": "Vis M6 acier", "q": 2, "pu": 0.15, "seuil": 20, "cat": "piece"},
@@ -22,5 +22,13 @@ def test_entree_sortie_negatif():
    assert estCeQueLeStockEstInsuffisant == False
 
 def test_cout_reapprovisionnement():
-    t = cout(ARTICLES[0])
-    assert t == 9.45
+    cout_reapprovisionnement = cout(ARTICLES[0])
+    assert cout_reapprovisionnement == 9.45
+
+def test_classement_des_stocks():
+    classement = classer(ARTICLES)
+    
+    assert classement == [
+        {'ref': 'PERC-18', 'lib': 'Perceuse 18V', 'q': 10, 'pu': 1, 'seuil': 3, 'cat': 'outil'},
+        {'ref': 'VIS-M6', 'lib': 'Vis M6 acier', 'q': -3, 'pu': 0.15, 'seuil': 20, 'cat': 'piece'}
+    ]
