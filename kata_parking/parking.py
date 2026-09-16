@@ -1,6 +1,6 @@
 import math
 
-def calculer_prix_parking(duree_minute, vehicule="voiture", heure_entree=None, heure_sortie=None, abonnement=False):
+def calculer_prix_parking(duree_minute=0, vehicule="voiture", heure_entree=None, heure_sortie=None, abonnement=False):
     if duree_minute > 4320:
         return 250.00
     if heure_entree and heure_sortie and heure_entree > heure_sortie:

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from parking import calculer_prix_parking
 
 def test_30min_stationnement_gratuit():
@@ -41,4 +41,11 @@ def test_heure_sortie_anterieure_heure_entree():
 def test_parking_superieur_72h_fourriere():
     duree_minute = 4321
     prix = calculer_prix_parking(duree_minute)
+    assert prix == 250.00
+
+def test_montant_camion_instant_present():
+    heure_sortie = datetime.now()
+    heure_entree = heure_sortie - timedelta(minutes=480)
+    prix = calculer_prix_parking(heure_entree=heure_entree, heure_sortie=heure_sortie
+    )
     assert prix == 250.00
