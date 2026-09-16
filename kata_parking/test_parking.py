@@ -14,3 +14,9 @@ def test_maximum_18_euro_par_tranche_24h():
     duree_minute = 480
     prix = calculer_prix_parking(duree_minute)
     assert prix == 18
+
+def test_remise_camion_60pourcent():
+    duree_minute = 480
+    vehicule = "camion"
+    prix = calculer_prix_parking(duree_minute, vehicule)
+    assert prix == 9
