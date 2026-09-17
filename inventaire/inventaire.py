@@ -118,22 +118,22 @@ def article_par_categorie(articles):
     return d
 
 
-def rapport(articles, ventes=None, cat=None, seuil_min=None, export=False, verbose=True, d=None):
-    if d is None:
-        d = datetime.datetime.now()
+def rapport(articles, ventes=None,parametre=[{cat: None}, {seuil_min: None}, {export: False}, {verbose: True}, {d: None}]):
+    if parametre[d] is None:
+       parametre[d] = datetime.datetime.now()
     res = {}
-    res["date"] = str(d)
+    res["date"] = str(parametre[d])
     tot = 0
     nb = 0
     liste_alerte = []
-    boucle_rapport(articles=articles)
+    boucle_rapport(articles=articles, cat=parametre[cat], seuil_min=parametre[seuil_min], verbose=parametre[verbose])
 
 
     res["valeur"] = round(tot, 2)
     res["nb"] = nb
     res["alertes"] = liste_alerte
     res["ttc"] = round(tot * (1 + TVA), 2)
-    if export:
+    if parametre[export]:
         export_rapport(res)
     return res
 
@@ -143,9 +143,9 @@ def export_rapport(res):
         f.close()
 
 
-def boucle_rapport(articles):
+def boucle_rapport(articles, cat, seuil_min, verbose):
     for a in articles:
-        verfication_article()
+        verfication_article(cat=cat, seuil_min=seuil_min)
         if a["q"] > 0:
             if a["pu"] > 0:
                 tot = tot + a["q"] * a["pu"]
@@ -163,7 +163,7 @@ def boucle_rapport(articles):
             if verbose:
                 print("stock vide " + a["ref"])
 
-def verfication_article():
+def verfication_article(cat, seuil_min):
     if cat is not None:
         if a["cat"] != cat:
             continue
