@@ -25,100 +25,100 @@ def valeur_stocks_global(articles):
     return round(total, 2)
 
 
-def alerte(arts):
-    l = []
-    for a in arts:
-        if a["q"] < a["seuil"]:
-            l.append(a["ref"])
-    return l
+def alerte_de_stocks(articles):
+    article_en_alerte = []
+    for article in articles:
+        if article["q"] < article["seuil"]:
+            article_en_alerte.append(article["ref"])
+    return article_en_alerte
 
 
-def mouv(a, q, t="out", j=[], force=False, log=True):
+def mouvement_stock(article, quantite, t="out", j=[], force=False, log=True):
     global DERNIER
-    if q <= 0:
+    if quantite <= 0:
         if log:
-            print("quantite invalide : " + str(q))
+            print("quantite invalide : " + str(quantite))
         return False
     if t == "out":
-        a["q"] = a["q"] - q
-        if a["q"] < 0:
+        article["q"] = article["q"] - quantite
+        if article["q"] < 0:
             if force == False:
                 if log:
-                    print("stock insuffisant pour " + a["ref"])
+                    print("stock insuffisant pour " + article["ref"])
                 return False
     elif t == "in":
-        a["q"] = a["q"] + q
+        article["q"] = article["q"] + quantite
     else:
         if log:
             print("type de mouvement inconnu : " + str(t))
         return False
     DERNIER = DERNIER + 1
-    j.append({"id": DERNIER, "ref": a["ref"], "q": q, "t": t})
-    JOURNAL.append({"id": DERNIER, "ref": a["ref"], "q": q, "t": t})
+    j.append({"id": DERNIER, "ref": article["ref"], "q": quantite, "t": t})
+    JOURNAL.append({"id": DERNIER, "ref": article["ref"], "q": quantite, "t": t})
     return True
 
 
-def cout(a):
-    if a["q"] < a["seuil"]:
-        n = a["seuil"] * S - a["q"]
+def cout_reapprovisionnement(articles):
+    if articles["q"] < articles["seuil"]:
+        n = articles["seuil"] * S - articles["q"]
         if n > Q:
-            c = n * a["pu"] - n * a["pu"] * R
+            c = n * articles["pu"] - n * articles["pu"] * R
         else:
-            c = n * a["pu"]
+            c = n * articles["pu"]
         return round(c, 2)
     else:
         return 0
 
 
-def classer(arts):
-    l = []
-    for a in arts:
-        l.append(a)
-    for i in range(len(l)):
-        for k in range(len(l) - 1):
-            if l[k]["q"] * l[k]["pu"] < l[k + 1]["q"] * l[k + 1]["pu"]:
-                tmp = l[k]
-                l[k] = l[k + 1]
-                l[k + 1] = tmp
-    return l
+def classer_stocks(articles):
+    liste_article = []
+    for article in articles:
+        liste_article.append(article)
+    for i in range(len(liste_article)):
+        for k in range(len(liste_article) - 1):
+            if liste_article[k]["q"] * liste_article[k]["pu"] < liste_article[k + 1]["q"] * liste_article[k + 1]["pu"]:
+                tmp = liste_article[k]
+                liste_article[k] = liste_article[k + 1]
+                liste_article[k + 1] = tmp
+    return liste_article
 
 
-def rot(a, v):
+def rotation_stocks(article, achat_30_dernier_jour):
     try:
-        return math.floor(a["q"] / (v / 30))
+        return math.floor(article["q"] / (achat_30_dernier_jour / 30))
     except:
         return 0
 
 
-def par_cat(arts):
+def article_par_categorie(articles):
     d = {}
-    for a in arts:
-        if a["cat"] == "outil":
+    for article in articles:
+        if article["cat"] == "outil":
             if "outil" in d:
                 d["outil"] = d["outil"] + a["q"] * a["pu"]
             else:
-                d["outil"] = a["q"] * a["pu"]
-        elif a["cat"] == "consommable":
+                d["outil"] = article["q"] * article["pu"]
+        elif article["cat"] == "consommable":
             if "consommable" in d:
-                d["consommable"] = d["consommable"] + a["q"] * a["pu"]
+                d["consommable"] = d["consommable"] + article["q"] * article["pu"]
             else:
-                d["consommable"] = a["q"] * a["pu"]
-        elif a["cat"] == "piece":
+                d["consommable"] = article["q"] * article["pu"]
+        elif article["cat"] == "piece":
             if "piece" in d:
-                d["piece"] = d["piece"] + a["q"] * a["pu"]
+                d["piece"] = d["piece"] + article["q"] * article["pu"]
             else:
-                d["piece"] = a["q"] * a["pu"]
+                d["piece"] = a["q"] * article["pu"]
         else:
             if "autre" in d:
-                d["autre"] = d["autre"] + a["q"] * a["pu"]
+                d["autre"] = d["autre"] + article["q"] * article["pu"]
             else:
-                d["autre"] = a["q"] * a["pu"]
+                d["autre"] = article["q"] * article["pu"]
     for k in d:
         d[k] = round(d[k], 2)
     return d
 
 
-def rapport(arts, ventes=None, cat=None, seuil_min=None, export=False, verbose=True, d=None):
+def rapport(articles, ventes=None, cat=None, seuil_min=None, export=False, verbose=True, d=None):
     if d is None:
         d = datetime.datetime.now()
     res = {}
@@ -126,7 +126,7 @@ def rapport(arts, ventes=None, cat=None, seuil_min=None, export=False, verbose=T
     tot = 0
     nb = 0
     liste_alerte = []
-    for a in arts:
+    for a in articles:
         if cat is not None:
             if a["cat"] != cat:
                 continue

@@ -1,5 +1,5 @@
 from datetime import datetime
-from inventaire import valeur_stocks_global, alerte, mouv, cout, classer, rot, rapport
+from inventaire import valeur_stocks_global, alerte_de_stocks, mouvement_stock, cout_reapprovisionnement, classer_stocks, rotation_stocks, rapport
 
 ARTICLES = [
     {"ref": "VIS-M6", "lib": "Vis M6 acier", "q": 2, "pu": 0.15, "seuil": 20, "cat": "piece"},
@@ -11,23 +11,23 @@ def test_valeur_stocks_global():
     assert resultat == 10.30
 
 def test_alerte():
-    resultatAlerte = alerte(ARTICLES)
+    resultatAlerte = alerte_de_stocks(ARTICLES)
     assert resultatAlerte == ["VIS-M6"]
 
 def test_entree_sortie(): 
-   estCeQueLeStockEstInsuffisant = mouv(ARTICLES[0], q=5)
+   estCeQueLeStockEstInsuffisant = mouvement_stock(ARTICLES[0], quantite=5)
    assert estCeQueLeStockEstInsuffisant == False
    
 def test_entree_sortie_negatif(): 
-   estCeQueLeStockEstInsuffisant = mouv(ARTICLES[0], q=-5)
+   estCeQueLeStockEstInsuffisant = mouvement_stock(ARTICLES[0], quantite=-5)
    assert estCeQueLeStockEstInsuffisant == False
 
 def test_cout_reapprovisionnement():
-    cout_reapprovisionnement = cout(ARTICLES[0])
-    assert cout_reapprovisionnement == 9.45
+    cout = cout_reapprovisionnement(ARTICLES[0])
+    assert cout == 9.45
 
 def test_classement_des_stocks():
-    classement = classer(ARTICLES)
+    classement = classer_stocks(ARTICLES)
     
     assert classement == [
         {'ref': 'PERC-18', 'lib': 'Perceuse 18V', 'q': 10, 'pu': 1, 'seuil': 3, 'cat': 'outil'},
@@ -35,7 +35,7 @@ def test_classement_des_stocks():
     ]
 
 def test_stock_jours_restant():
-    jours_restant = rot(ARTICLES[1], 30)
+    jours_restant = rotation_stocks(ARTICLES[1], 30)
     assert jours_restant == 10
 
 def test_rapport_mensuel():
