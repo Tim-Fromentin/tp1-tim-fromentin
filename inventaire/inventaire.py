@@ -126,13 +126,26 @@ def rapport(articles, ventes=None, cat=None, seuil_min=None, export=False, verbo
     tot = 0
     nb = 0
     liste_alerte = []
+    boucle_rapport(articles=articles)
+
+
+    res["valeur"] = round(tot, 2)
+    res["nb"] = nb
+    res["alertes"] = liste_alerte
+    res["ttc"] = round(tot * (1 + TVA), 2)
+    if export:
+        export_rapport(res)
+    return res
+
+def export_rapport(res): 
+        f = open("/tmp/rapport_" + str(random.randint(1, 9999)) + ".json", "w")
+        f.write(json.dumps(res))
+        f.close()
+
+
+def boucle_rapport(articles):
     for a in articles:
-        if cat is not None:
-            if a["cat"] != cat:
-                continue
-        if seuil_min is not None:
-            if a["q"] < seuil_min:
-                continue
+        verfication_article()
         if a["q"] > 0:
             if a["pu"] > 0:
                 tot = tot + a["q"] * a["pu"]
@@ -142,37 +155,34 @@ def rapport(articles, ventes=None, cat=None, seuil_min=None, export=False, verbo
                     if verbose:
                         print("ALERTE " + a["ref"] + " : " + str(a["q"]) + " restants")
                 if ventes is not None:
-                    if a["ref"] in ventes:
-                        if ventes[a["ref"]] > 0:
-                            j = math.floor(a["q"] / (ventes[a["ref"]] / 30))
-                            if j < 7:
-                                if verbose:
-                                    print("RUPTURE IMMINENTE " + a["ref"])
-                            elif j < 30:
-                                if verbose:
-                                    print("a surveiller " + a["ref"])
-                        else:
-                            if verbose:
-                                print("aucune vente pour " + a["ref"])
+                    verfication_vente()
             else:
                 if verbose:
                     print("prix invalide " + a["ref"])
         else:
             if verbose:
                 print("stock vide " + a["ref"])
-    res["valeur"] = round(tot, 2)
-    res["nb"] = nb
-    res["alertes"] = liste_alerte
-    res["ttc"] = round(tot * (1 + TVA), 2)
-    if export:
-        f = open("/tmp/rapport_" + str(random.randint(1, 9999)) + ".json", "w")
-        f.write(json.dumps(res))
-        f.close()
-    return res
 
-
-
-
+def verfication_article():
+    if cat is not None:
+        if a["cat"] != cat:
+            continue
+    if seuil_min is not None:
+        if a["q"] < seuil_min:
+            continue
+def verfication_vente():
+    if a["ref"] in ventes:
+        if ventes[a["ref"]] > 0:
+            j = math.floor(a["q"] / (ventes[a["ref"]] / 30))
+            if j < 7:
+                if verbose:
+                    print("RUPTURE IMMINENTE " + a["ref"])
+            elif j < 30:
+                if verbose:
+                    print("a surveiller " + a["ref"])
+        else:
+            if verbose:
+                print("aucune vente pour " + a["ref"])
 
 def export_json(res, chemin="/tmp/inv.json", hist=[]):
     hist.append(res)
