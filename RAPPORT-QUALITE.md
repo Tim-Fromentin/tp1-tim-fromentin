@@ -101,9 +101,13 @@ Pour lister les différentes variables, fonctions, etc. non utilisées, on utili
 
 Rempli pendant la mission 3, sans rien corriger.
 
-| Règle | Ligne | Ce que le code fait | Ce que la règle dit |
-|---|---|---|---|
-|  |  |  |  |
+| Règle                   | Ligne            | Ce que le code fait                                                                                           | Ce que la règle dit                                                                                                                                                                                         |
+| ----------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Règles de nommage       | Tout le fichiers | Nommage de variables, fonctions, etc. Peu explicite souvent uniquement des lettres. Par exemple t pour total. | pas d'abréviation inventée, Cherchable                                                                                                                                                                      |
+| Fonction morte          | 175-182          | Fonction qui retourne juste un None et rien d'autre                                                           | Le code mort coûte trois fois                                                                                                                                                                               |
+| Retourne None           | Tout le fichiers | Retourne None                                                                                                 | Ne renvoyez jamais None pour dire « rien »                                                                                                                                                                  |
+| Fonction trop longue    | 122-172          | Fonction trop longue au lieu d'être découper en plusieurs petite fonction                                     | au-delà de 20 lignes, vous avez deux fonctions                                                                                                                                                              |
+| complexité cyclomatique | 122-172          | Trop de conditions, boucle, etc                                                                               | Une fonction à complexité 30 demande 30 tests<br>Personne ne les écrit<br>Donc cette fonction n'est jamais testée<br>Donc personne n'ose la modifier<br>Donc on la contourne, et la complexité monte encore |
 
 ---
 
