@@ -1,190 +1,202 @@
-# -*- coding: utf-8 -*-
-# gestion de stock entrepot nord - v4
-# repris de la v3 de Kevin, TODO refactorer un jour
-# NE PAS TOUCHER A mouv() SANS PREVENIR L'EQUIPE LOGISTIQUE
+"""Gestion du stock de l entrepot nord."""
+
 import datetime
 import json
 import math
-import random
 
-TVA = 0.2
-S = 3
-R = 0.1
-Q = 100
+TAUX_TVA = 0.2
+MULTIPLICATEUR_DE_REAPPROVISIONNEMENT = 3
+TAUX_DE_REMISE_GROS_VOLUME = 0.1
+QUANTITE_MINIMALE_POUR_REMISE = 100
+JOURS_DE_LA_PERIODE_DE_VENTE = 30
+SEUIL_RUPTURE_IMMINENTE_EN_JOURS = 7
+SEUIL_SURVEILLANCE_EN_JOURS = 30
+CATEGORIES_CONNUES = ("outil", "consommable", "piece")
+CATEGORIE_PAR_DEFAUT = "autre"
 JOURNAL = []
-STOCK = {}
-DERNIER = 0
 
 
-def val(arts):
-    t = 0
-    for a in arts:
-        if a["q"] > 0:
-            t = t + a["q"] * a["pu"]
-        else:
-            t = t + 0
-    return round(t, 2)
+class AucuneVenteSurLaPeriode(ValueError):
+    """Impossible de calculer une rotation sans vente sur la periode."""
 
 
-def alerte(arts):
-    l = []
-    for a in arts:
-        if a["q"] < a["seuil"]:
-            l.append(a["ref"])
-    return l
+def valeur_brute(a):
+    return a["q"] * a["pu"]
 
 
-def mouv(a, q, t="out", j=[], force=False, log=True):
-    global DERNIER
-    if q <= 0:
-        if log:
-            print("quantite invalide : " + str(q))
+def valeur_du_stock(articles):
+    return round(sum(valeur_brute(a) for a in articles if a["q"] > 0), 2)
+
+
+def est_en_alerte(article):
+    return article["q"] <= article["seuil"]
+
+
+def references_en_alerte(articles):
+    return [a["ref"] for a in articles if est_en_alerte(a)]
+
+
+def enregistrer_mouvement(article, quantite, sens, journal):
+    ecriture = {
+        "id": len(JOURNAL) + 1,
+        "ref": article["ref"],
+        "q": quantite,
+        "t": sens,
+    }
+    if journal is not None:
+        journal.append(ecriture)
+    JOURNAL.append(dict(ecriture))
+
+
+def retirer_du_stock(article, quantite, journal=None, force=False):
+    if quantite <= 0:
         return False
-    if t == "out":
-        a["q"] = a["q"] - q
-        if a["q"] < 0:
-            if force == False:
-                if log:
-                    print("stock insuffisant pour " + a["ref"])
-                return False
-    elif t == "in":
-        a["q"] = a["q"] + q
-    else:
-        if log:
-            print("type de mouvement inconnu : " + str(t))
+    if quantite > article["q"] and not force:
         return False
-    DERNIER = DERNIER + 1
-    j.append({"id": DERNIER, "ref": a["ref"], "q": q, "t": t})
-    JOURNAL.append({"id": DERNIER, "ref": a["ref"], "q": q, "t": t})
+    article["q"] = article["q"] - quantite
+    enregistrer_mouvement(article, quantite, "out", journal)
     return True
 
 
-def cout(a):
-    if a["q"] < a["seuil"]:
-        n = a["seuil"] * S - a["q"]
-        if n > Q:
-            c = n * a["pu"] - n * a["pu"] * R
-        else:
-            c = n * a["pu"]
-        return round(c, 2)
-    else:
+def ajouter_au_stock(article, quantite, journal=None):
+    if quantite <= 0:
+        return False
+    article["q"] = article["q"] + quantite
+    enregistrer_mouvement(article, quantite, "in", journal)
+    return True
+
+
+def quantite_a_commander(a):
+    return a["seuil"] * MULTIPLICATEUR_DE_REAPPROVISIONNEMENT - a["q"]
+
+
+def cout_de_reapprovisionnement(article):
+    if not est_en_alerte(article):
         return 0
+    quantite = quantite_a_commander(article)
+    montant = quantite * article["pu"]
+    if quantite >= QUANTITE_MINIMALE_POUR_REMISE:
+        montant -= montant * TAUX_DE_REMISE_GROS_VOLUME
+    return round(montant, 2)
 
 
-def classer(arts):
-    l = []
-    for a in arts:
-        l.append(a)
-    for i in range(len(l)):
-        for k in range(len(l) - 1):
-            if l[k]["q"] * l[k]["pu"] < l[k + 1]["q"] * l[k + 1]["pu"]:
-                tmp = l[k]
-                l[k] = l[k + 1]
-                l[k + 1] = tmp
-    return l
+def classer_par_valeur(articles):
+    return sorted(articles, key=valeur_brute, reverse=True)
 
 
-def rot(a, v):
-    try:
-        return math.floor(a["q"] / (v / 30))
-    except:
-        return 0
+def rotation_en_jours(article, ventes_sur_la_periode):
+    if ventes_sur_la_periode <= 0:
+        raise AucuneVenteSurLaPeriode(article["ref"] + " : aucune vente")
+    ventes_par_jour = ventes_sur_la_periode / JOURS_DE_LA_PERIODE_DE_VENTE
+    return math.floor(article["q"] / ventes_par_jour)
 
 
-def par_cat(arts):
-    d = {}
-    for a in arts:
-        if a["cat"] == "outil":
-            if "outil" in d:
-                d["outil"] = d["outil"] + a["q"] * a["pu"]
-            else:
-                d["outil"] = a["q"] * a["pu"]
-        elif a["cat"] == "consommable":
-            if "consommable" in d:
-                d["consommable"] = d["consommable"] + a["q"] * a["pu"]
-            else:
-                d["consommable"] = a["q"] * a["pu"]
-        elif a["cat"] == "piece":
-            if "piece" in d:
-                d["piece"] = d["piece"] + a["q"] * a["pu"]
-            else:
-                d["piece"] = a["q"] * a["pu"]
-        else:
-            if "autre" in d:
-                d["autre"] = d["autre"] + a["q"] * a["pu"]
-            else:
-                d["autre"] = a["q"] * a["pu"]
-    for k in d:
-        d[k] = round(d[k], 2)
-    return d
+def valeur_par_categorie(articles):
+    totaux = {}
+    for a in articles:
+        categorie = a["cat"] if a["cat"] in CATEGORIES_CONNUES else CATEGORIE_PAR_DEFAUT
+        totaux[categorie] = totaux.get(categorie, 0) + valeur_brute(a)
+    return {categorie: round(valeur, 2) for categorie, valeur in totaux.items()}
 
 
-def rapport(arts, ventes=None, cat=None, seuil_min=None, export=False, verbose=True, d=None):
-    if d is None:
-        d = datetime.datetime.now()
-    res = {}
-    res["date"] = str(d)
-    tot = 0
-    nb = 0
-    liste_alerte = []
-    for a in arts:
-        if cat is not None:
-            if a["cat"] != cat:
-                continue
-        if seuil_min is not None:
-            if a["q"] < seuil_min:
-                continue
-        if a["q"] > 0:
-            if a["pu"] > 0:
-                tot = tot + a["q"] * a["pu"]
-                nb = nb + 1
-                if a["q"] < a["seuil"]:
-                    liste_alerte.append(a["ref"])
-                    if verbose:
-                        print("ALERTE " + a["ref"] + " : " + str(a["q"]) + " restants")
-                if ventes is not None:
-                    if a["ref"] in ventes:
-                        if ventes[a["ref"]] > 0:
-                            j = math.floor(a["q"] / (ventes[a["ref"]] / 30))
-                            if j < 7:
-                                if verbose:
-                                    print("RUPTURE IMMINENTE " + a["ref"])
-                            elif j < 30:
-                                if verbose:
-                                    print("a surveiller " + a["ref"])
-                        else:
-                            if verbose:
-                                print("aucune vente pour " + a["ref"])
-            else:
-                if verbose:
-                    print("prix invalide " + a["ref"])
-        else:
-            if verbose:
-                print("stock vide " + a["ref"])
-    res["valeur"] = round(tot, 2)
-    res["nb"] = nb
-    res["alertes"] = liste_alerte
-    res["ttc"] = round(tot * (1 + TVA), 2)
-    if export:
-        f = open("/tmp/rapport_" + str(random.randint(1, 9999)) + ".json", "w")
-        f.write(json.dumps(res))
-        f.close()
-    return res
-
-
-def maj_prix(ref, p):
-    # ancienne version, remplacee par l'ERP en 2021
-    # for a in STOCK:
-    #     if a == ref:
-    #         STOCK[a]["pu"] = p
-    #         JOURNAL.append({"ref": ref, "p": p})
-    # return True
+def message_de_rotation(a, ventes_sur_la_periode):
+    if ventes_sur_la_periode <= 0:
+        return "aucune vente pour " + a["ref"]
+    jours = math.floor(a["q"] / (ventes_sur_la_periode / JOURS_DE_LA_PERIODE_DE_VENTE))
+    if jours < SEUIL_RUPTURE_IMMINENTE_EN_JOURS:
+        return "RUPTURE IMMINENTE " + a["ref"]
+    if jours < SEUIL_SURVEILLANCE_EN_JOURS:
+        return "a surveiller " + a["ref"]
     return None
 
 
-def export_json(res, chemin="/tmp/inv.json", hist=[]):
-    hist.append(res)
-    f = open(chemin, "w")
-    f.write(json.dumps(hist))
-    f.close()
-    return hist
+def correspond_a_la_categorie(a, cat):
+    return cat is None or a["cat"] == cat
+
+
+def atteint_la_quantite_minimale(a, seuil_min):
+    return seuil_min is None or a["q"] >= seuil_min
+
+
+def est_comptabilisable(a):
+    return a["q"] > 0 and a["pu"] > 0
+
+
+def articles_retenus(arts, cat=None, seuil_min=None):
+    return (
+        a
+        for a in arts
+        if correspond_a_la_categorie(a, cat)
+        and atteint_la_quantite_minimale(a, seuil_min)
+    )
+
+
+def message_d_exclusion(a):
+    if a["q"] <= 0:
+        return "stock vide " + a["ref"]
+    if a["pu"] <= 0:
+        return "prix invalide " + a["ref"]
+    return None
+
+
+def message_de_rotation_si_connue(a, ventes):
+    if ventes is None or a["ref"] not in ventes:
+        return None
+    return message_de_rotation(a, ventes[a["ref"]])
+
+
+def messages_pour_un_article(a, ventes=None):
+    exclusion = message_d_exclusion(a)
+    if exclusion is not None:
+        return [exclusion]
+    messages = []
+    if est_en_alerte(a):
+        messages.append("ALERTE " + a["ref"] + " : " + str(a["q"]) + " restants")
+    rotation = message_de_rotation_si_connue(a, ventes)
+    if rotation is not None:
+        messages.append(rotation)
+    return messages
+
+
+def messages_de_diagnostic(arts, ventes=None, cat=None, seuil_min=None):
+    messages = []
+    for a in articles_retenus(arts, cat, seuil_min):
+        messages.extend(messages_pour_un_article(a, ventes))
+    return messages
+
+
+def afficher_diagnostic(arts, ventes=None, cat=None, seuil_min=None):
+    for message in messages_de_diagnostic(arts, ventes, cat, seuil_min):
+        print(message)
+
+
+def generer_rapport(
+    articles, categorie=None, quantite_minimale=None, date_du_rapport=None
+):
+    if date_du_rapport is None:
+        date_du_rapport = datetime.datetime.now()
+    total = 0
+    nombre_d_articles = 0
+    alertes = []
+    for article in articles_retenus(articles, categorie, quantite_minimale):
+        if not est_comptabilisable(article):
+            continue
+        total = total + valeur_brute(article)
+        nombre_d_articles = nombre_d_articles + 1
+        if est_en_alerte(article):
+            alertes.append(article["ref"])
+    return {
+        "date": str(date_du_rapport),
+        "valeur": round(total, 2),
+        "nb": nombre_d_articles,
+        "alertes": alertes,
+        "ttc": round(total * (1 + TAUX_TVA), 2),
+    }
+
+
+def exporter_historique(rapport, chemin="/tmp/inv.json", historique=None):
+    entrees = [] if historique is None else historique
+    entrees.append(rapport)
+    with open(chemin, "w", encoding="utf-8") as fichier:
+        fichier.write(json.dumps(entrees))
+    return entrees
