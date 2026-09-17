@@ -1,0 +1,27 @@
+repos:
+  - repo: local
+    hooks:
+      - id: diagnostic
+        name: diagnostic
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
+        entry: >
+          sh -c '
+          echo "--- ou tourne le crochet ---";
+          pwd;
+          echo "--- configuration vue ---";
+          ls -la .pre-commit-config.* 2>/dev/null;
+          echo "--- python ---";
+          command -v python  || echo "python absent du PATH";
+          command -v python3 || echo "python3 absent du PATH";
+          echo "--- pytest ---";
+          command -v pytest || echo "pytest absent du PATH";
+          echo "--- environnement virtuel ---";
+          ls .venv/bin/pytest .venv/Scripts/pytest.exe 2>/dev/null || echo "aucun pytest dans .venv";
+          echo "--- pytest importable ? ---";
+          python -c "import pytest,sys; print(sys.executable, pytest.__version__)" 2>&1 | head -3;
+          echo "--- PATH ---";
+          echo "$PATH" | tr ":" "\n" | head -12;
+          '

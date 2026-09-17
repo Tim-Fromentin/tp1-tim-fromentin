@@ -1,0 +1,11 @@
+[tool.ruff.lint.mccabe]
+max-complexity = 8
+[tool.ruff.lint.pylint]
+max-args = 4
+max-branches = 10
+max-statements = 30
+[tool.coverage.run]
+branch = true
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
